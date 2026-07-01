@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
+import emailjs from "@emailjs/browser";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  CheckCircle2,
   Code2,
+  Loader2,
   Mail,
   Menu,
   Moon,
+  Send,
   Sparkles,
   Sun,
   Trophy,
@@ -74,20 +78,14 @@ const projects = [
   {
     title: "NDRRMO Content Management System",
     image: "/NDRRMO.jpg",
-    description: "Short project summary goes here. Mention impact, users, or business value.",
-    tags: ["Dashboard", "API", "Automation"],
+    description: "A content management system for NDRRMO.",
+    tags: ["Dashboard", "API", "CMS"],
   },
   {
-    title: "Attendance and Payroll System",
-    image: "/Attendance.jpg",
-    description: "Short project summary goes here. Keep this concise and results-oriented.",
-    tags: ["Landing Page", "Conversion", "SEO"],
-  },
-  {
-    title: "GymPal",
-    image: "/gympal.png",
-    description: "Short project summary goes here. Keep this concise and results-oriented.",
-    tags: ["Landing Page", "Conversion", "SEO"],
+    title: "Aurora",
+    image: "/aurora1.png",
+    description: "Aurora is your integrated academic mood-mapping mobile application built using React Native and Expo. It's designed to help students track, visualize, and reflect on their emotional well-being over time.",
+    tags: ["React Native", "Firebase", "Expo", "UI/UX"],
   }
 ];
 
@@ -119,31 +117,10 @@ const achievements = [
 const experiences = [
   {
     role: "Full Stack Developer",
-    type: "Full Time",
-    company: "Oracle Singapore",
-    period: "2024 - Present",
-    details: "Developed and maintained web applications using React, Next.js, and Tailwind CSS.",
-  },
-  {
-    role: "Cloud Engineer",
     type: "Internship",
     company: "Pixzel Digital",
-    period: "2025 - 2026",
-    details: "Developed and maintained cloud infrastructure for clients using AWS and Azure.",
-  },
-  {
-    role: "Mobile Developer",
-    type: "Part Time",
-    company: "Aurora Technologies",
-    period: "2025 - Present",
-    details: "Developed and maintained mobile applications using React Native and Expo.",
-  },
-  {
-    role: "Freelancing",
-    type: "Contract",
-    company: "Upwork",
-    period: "2022 - Present",
-    details: "Freelancing projects for clients.",
+    period: "2024 - Present",
+    details: "Developed and maintained an applications using Laravel, PHP, React, Next.js, and Tailwind CSS.",
   },
 ];
 
@@ -152,12 +129,29 @@ const sectionAnimation = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
 };
 
+// ---------------------------------------------------------------------------
+// EmailJS credentials — fill these in after creating your EmailJS account.
+// Sign up at https://www.emailjs.com/ (free, 200 emails/month)
+// Dashboard → Email Services → Add Service → copy Service ID
+// Dashboard → Email Templates → Create Template → copy Template ID
+// Dashboard → Account → copy Public Key
+// ---------------------------------------------------------------------------
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
 export default function Home() {
   const [theme, setTheme] = useState("dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("about");
   const { scrollY } = useScroll();
+
+  // Contact form state
+  const [contactOpen, setContactOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formStatus, setFormStatus] = useState(/** @type {'idle'|'sending'|'success'|'error'} */ ("idle"));
+  const formRef = useRef(null);
   const glowParticles = [
     { width: 220, height: 220, top: "8%", left: "6%", delay: 0 },
     { width: 160, height: 160, top: "28%", left: "78%", delay: 0.8 },
@@ -237,6 +231,40 @@ export default function Home() {
     setActiveSection(sectionId);
   };
 
+  /** @param {React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>} e */
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  /** @param {React.FormEvent} e */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormStatus("sending");
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          // Keys must match the {{variables}} used in your EmailJS template
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      setFormStatus("success");
+      setFormData({ name: "", email: "", message: "" });
+    } catch {
+      setFormStatus("error");
+    }
+  };
+
+  const closeContact = () => {
+    setContactOpen(false);
+    // Reset status after modal closes so it's fresh next time
+    setTimeout(() => setFormStatus("idle"), 300);
+  };
+
   return (
     <div className="relative isolate min-h-screen overflow-x-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_8%,hsla(36,90%,55%,0.26),transparent_38%),radial-gradient(circle_at_86%_14%,hsla(260,95%,65%,0.2),transparent_36%),radial-gradient(circle_at_50%_92%,hsla(190,95%,55%,0.15),transparent_42%)] dark:bg-[radial-gradient(circle_at_10%_8%,hsla(36,90%,55%,0.2),transparent_40%),radial-gradient(circle_at_86%_14%,hsla(260,95%,65%,0.17),transparent_38%),radial-gradient(circle_at_50%_92%,hsla(190,95%,55%,0.12),transparent_45%)]" />
@@ -272,11 +300,10 @@ export default function Home() {
           width: hasScrolled ? "min(94%, 70rem)" : "min(96%, 72rem)",
         }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className={`fixed left-1/2 top-3 z-50 -translate-x-1/2 rounded-2xl border supports-[backdrop-filter]:bg-background/28 supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150 ${
-          hasScrolled
-            ? "border-white/20 bg-background/72 shadow-[0_16px_40px_-28px_hsla(220,40%,5%,0.88)]"
-            : "border-white/15 bg-background/55 shadow-[0_16px_40px_-28px_hsla(220,40%,5%,0.75)]"
-        }`}
+        className={`fixed left-1/2 top-3 z-50 -translate-x-1/2 rounded-2xl border supports-[backdrop-filter]:bg-background/28 supports-[backdrop-filter]:backdrop-blur-2xl supports-[backdrop-filter]:backdrop-saturate-150 ${hasScrolled
+          ? "border-white/20 bg-background/72 shadow-[0_16px_40px_-28px_hsla(220,40%,5%,0.88)]"
+          : "border-white/15 bg-background/55 shadow-[0_16px_40px_-28px_hsla(220,40%,5%,0.75)]"
+          }`}
       >
         <div className="grid w-full grid-cols-[1fr_auto_auto] items-center gap-3 px-4 py-3 sm:px-6">
           <a
@@ -292,11 +319,10 @@ export default function Home() {
                 key={item.href}
                 href={item.href}
                 onClick={(event) => handleNavClick(event, item.href)}
-                className={`relative rounded-full px-3 py-1.5 text-sm transition-colors ${
-                  activeSection === item.href.replace("#", "")
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`relative rounded-full px-3 py-1.5 text-sm transition-colors ${activeSection === item.href.replace("#", "")
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {activeSection === item.href.replace("#", "") && (
                   <>
@@ -313,9 +339,8 @@ export default function Home() {
                   </>
                 )}
                 <span
-                  className={`relative z-10 ${
-                    activeSection === item.href.replace("#", "") ? "font-medium" : ""
-                  }`}
+                  className={`relative z-10 ${activeSection === item.href.replace("#", "") ? "font-medium" : ""
+                    }`}
                 >
                   {item.label}
                 </span>
@@ -378,11 +403,10 @@ export default function Home() {
                     handleNavClick(event, item.href);
                     setMobileMenuOpen(false);
                   }}
-                  className={`rounded-xl px-4 py-3 text-center text-xl font-medium transition ${
-                    activeSection === item.href.replace("#", "")
-                      ? "bg-white/30 text-foreground dark:bg-white/15"
-                      : "text-foreground/90 hover:bg-white/30 dark:hover:bg-white/10"
-                  }`}
+                  className={`rounded-xl px-4 py-3 text-center text-xl font-medium transition ${activeSection === item.href.replace("#", "")
+                    ? "bg-white/30 text-foreground dark:bg-white/15"
+                    : "text-foreground/90 hover:bg-white/30 dark:hover:bg-white/10"
+                    }`}
                 >
                   {item.label}
                 </a>
@@ -453,10 +477,7 @@ export default function Home() {
                   <p className="text-lg font-semibold text-white">5+</p>
                   <p className="text-xs text-white/75">Projects</p>
                 </div>
-                <div className="rounded-lg bg-black/30 px-3 py-2.5 backdrop-blur-[1px]">
-                  <p className="text-lg font-semibold text-white">3</p>
-                  <p className="text-xs text-white/75">Clients</p>
-                </div>
+
               </div>
             </div>
           </motion.div>
@@ -480,7 +501,7 @@ export default function Home() {
               <p className="mt-2 text-sm font-medium">UI/UX + Backend Development</p>
             </div>
             <p className="text-muted-foreground leading-relaxed md:col-span-2 md:text-lg">
-            I’m an aspiring full stack developer who enjoys creating web applications from the ground up, designing interfaces, building APIs, and connecting everything together. I like solving problems and turning complex ideas into simple, usable systems. As I continue learning, I focus on improving code quality, understanding how systems scale, and building projects that have real impact.
+              I’m an aspiring full stack developer who enjoys creating web applications from the ground up, designing interfaces, building APIs, and connecting everything together. I like solving problems and turning complex ideas into simple, usable systems. As I continue learning, I focus on improving code quality, understanding how systems scale, and building projects that have real impact.
             </p>
           </div>
         </motion.section>
@@ -625,7 +646,7 @@ export default function Home() {
           variants={sectionAnimation}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }} 
+          viewport={{ once: true, amount: 0.2 }}
           className="py-14 scroll-mt-36"
         >
           <div className="mb-6 flex items-center gap-3">
@@ -678,13 +699,15 @@ export default function Home() {
               one to two business days.
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
-              <a
-                href="mailto:viovicenteveejay@email.com"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5"
+              <button
+                type="button"
+                id="open-contact-form"
+                onClick={() => setContactOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:-translate-y-0.5 hover:scale-[1.03]"
               >
                 <Mail size={15} />
-                viovicenteveejay@email.com
-              </a>
+                Send Me a Message
+              </button>
               <a
                 href="#hero"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-5 py-2.5 text-sm font-semibold transition hover:border-primary/50"
@@ -695,6 +718,164 @@ export default function Home() {
           </div>
         </motion.section>
       </main>
+
+      {/* ── Contact Form Modal ─────────────────────────────────────────── */}
+      <AnimatePresence>
+        {contactOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="contact-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              onClick={closeContact}
+              aria-hidden="true"
+            />
+
+            {/* Modal panel */}
+            <motion.div
+              key="contact-modal"
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="contact-modal-title"
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-lg -translate-y-1/2 rounded-2xl border border-white/15 bg-card/90 p-7 shadow-2xl backdrop-blur-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:p-8"
+            >
+              {/* Header */}
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="contact-modal-title" className="text-xl font-bold">
+                    Let's work together
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Fill in the details below and I'll get back to you within 1–2 business days.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeContact}
+                  aria-label="Close contact form"
+                  className="mt-0.5 rounded-full p-1.5 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Success state */}
+              {formStatus === "success" ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center gap-4 py-8 text-center"
+                >
+                  <div className="rounded-full bg-green-500/15 p-4">
+                    <CheckCircle2 className="text-green-500" size={36} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">Message sent!</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Thanks for reaching out. I'll reply to your email soon.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeContact}
+                    className="mt-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                  >
+                    Close
+                  </button>
+                </motion.div>
+              ) : (
+                /* Form */
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" noValidate>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label htmlFor="contact-name" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Name
+                      </label>
+                      <input
+                        id="contact-name"
+                        name="name"
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Your name"
+                        className="w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="contact-email" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Email
+                      </label>
+                      <input
+                        id="contact-email"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="you@example.com"
+                        className="w-full rounded-xl border border-border/70 bg-background/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact-message" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Message
+                    </label>
+                    <textarea
+                      id="contact-message"
+                      name="message"
+                      rows={5}
+                      required
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Tell me about your project — scope, timeline, budget range..."
+                      className="w-full resize-none rounded-xl border border-border/70 bg-background/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  {formStatus === "error" && (
+                    <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+                      Something went wrong. Please try again or email me directly at{" "}
+                      <a href="mailto:viovicenteveejay@email.com" className="underline">
+                        viovicenteveejay@email.com
+                      </a>
+                      .
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={formStatus === "sending"}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {formStatus === "sending" ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Sending…
+                      </>
+                    ) : (
+                      <>
+                        <Send size={15} />
+                        Send Message
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

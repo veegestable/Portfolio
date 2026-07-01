@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Personal portfolio site built with **React**, **Vite**, and **Tailwind CSS**. Routing and data use **React Router** and **TanStack Query**; authentication flows use the **Base44** SDK.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- [React 18](https://react.dev/) — UI
+- [Vite 6](https://vite.dev/) — dev server and production build
+- [Tailwind CSS v4](https://tailwindcss.com/) — styling (`@tailwindcss/vite`)
+- [React Router v6](https://reactrouter.com/) — client-side routing
+- [@tanstack/react-query](https://tanstack.com/query) — server/async state
+- [Radix UI](https://www.radix-ui.com/) — accessible primitives (with local UI components under `src/components/ui`)
 
-## React Compiler
+Entry and app shell are TypeScript (`main.tsx`, `App.tsx`); pages and many components use JSX.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Prerequisites
 
-## Expanding the ESLint configuration
+- **Node.js** 18+ (20+ recommended)
+- **npm** (or pnpm / yarn)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Setup
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Create a `.env` in the project root for any keys your app expects (see Base44 / Stripe / other integrations). `.env` and `.env.*` are gitignored. Base44 app settings are resolved in `src/lib/app-params.js` and wired in `src/api/base44Client.js`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Command            | Description                    |
+| ------------------ | ------------------------------ |
+| `npm run dev`      | Start Vite dev server (HMR)    |
+| `npm run build`    | Production build to `dist/`    |
+| `npm run preview`  | Serve the production build     |
+| `npm run lint`     | Run ESLint                     |
+| `npm run lint:fix` | ESLint with auto-fix           |
+| `npm run typecheck`| TypeScript check (`jsconfig`)  |
+
+## Project layout
+
+- `src/App.tsx` — providers, router, authenticated shell
+- `src/pages/` — route-level pages (e.g. `Home.jsx`)
+- `src/components/` — shared UI and feature components
+- `src/lib/` — auth context, query client, utilities
+- `vite.config.ts` — Vite config and `@` → `src` path alias
+
+## Deploy
+
+Build with `npm run build` and host the `dist/` output on any static host (e.g. Vercel, Netlify, GitHub Pages with the correct base path if applicable).
+z
