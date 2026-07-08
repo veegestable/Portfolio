@@ -85,7 +85,7 @@ const projects = [
     title: "Aurora",
     image: "/aurora1.png",
     description: "Aurora is your integrated academic mood-mapping mobile application built using React Native and Expo. It's designed to help students track, visualize, and reflect on their emotional well-being over time.",
-    tags: ["React Native", "Firebase", "Expo", "UI/UX"],
+    tags: ["React Native", "Firebase", "Expo", "UI/UX", "Android"],
   }
 ];
 
