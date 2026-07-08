@@ -72,14 +72,14 @@ const projects = [
   {
     title: "Job Market",
     image: "/Job-market.jpg",
-    description: "A web application that allows users to search for jobs and apply for them.",
-    tags: ["Web App", "UI/UX", "Performance"],
+    description: "An official, production-grade employment gateway developed for the Iligan Local Government Unit (LGU) to connect job seekers with verified local employers. Engineered with a focus on seamless UI/UX, optimized performance, and secure user data management to handle real-world local job-market demands.",
+    tags: ["Web App", "UI/UX", "Performance", "React", "Typescript", "Redux"],
   },
   {
     title: "NDRRMO Content Management System",
     image: "/NDRRMO.jpg",
-    description: "A content management system for NDRRMO.",
-    tags: ["Dashboard", "API", "CMS"],
+    description: "A secure, enterprise-grade content management system engineered for the National Disaster Risk Reduction and Management Office (NDRRMO). Features a robust dashboard and tailored API architecture designed for critical real-time information dissemination and secure administrative control.",
+    tags: ["Dashboard", "API", "CMS", "Laravel", "SQL", "PHP"],
   },
   {
     title: "Aurora",
